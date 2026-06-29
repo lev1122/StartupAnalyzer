@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using Microsoft.Win32;
 
 namespace StartupAnalyzer
@@ -13,30 +11,59 @@ namespace StartupAnalyzer
         {
             var items = new List<StartupItem>();
 
-            string registryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+            ScanRegistryKey(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Run", "HKCU\\Run", items);
 
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(registryPath))
+            ScanRegistryKey(Registry.LocalMachine, @"Software\Microsoft\Windows\CurrentVersion\Run", "HKLM\\Run", items);
+
+            ScanStartupFolder(items);
+
+            return items;
+        }
+
+        private void ScanRegistryKey(RegistryKey rootKey, string path, string sourceName, List<StartupItem> items)
+        {
+            try
             {
-                if (key != null)
+                using (RegistryKey key = rootKey.OpenSubKey(path))
                 {
-                    foreach (string valueName in key.GetValueNames())
+                    if (key != null)
                     {
-                        string filePath = key.GetValue(valueName)?.ToString();
-
-                        var item = new StartupItem
+                        foreach (string valueName in key.GetValueNames())
                         {
-                            Name = valueName,
-                            Path = filePath,
-                            Source = "HKCU\\Run",
-                            IsActive = true
-                        };
-
-                        items.Add(item);
+                            items.Add(new StartupItem
+                            {
+                                Name = valueName,
+                                Path = key.GetValue(valueName)?.ToString(),
+                                Source = sourceName,
+                                IsActive = true
+                            });
+                        }
                     }
                 }
             }
+            catch { }
+        }
 
-            return items;
+        private void ScanStartupFolder(List<StartupItem> items)
+        {
+            try
+            {
+                string startupPath = Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+                if (Directory.Exists(startupPath))
+                {
+                    foreach (string file in Directory.GetFiles(startupPath))
+                    {
+                        items.Add(new StartupItem
+                        {
+                            Name = Path.GetFileNameWithoutExtension(file),
+                            Path = file,
+                            Source = "Папка Startup",
+                            IsActive = true
+                        });
+                    }
+                }
+            }
+            catch { }
         }
     }
 }
