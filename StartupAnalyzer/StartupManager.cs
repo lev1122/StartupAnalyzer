@@ -10,33 +10,71 @@ namespace StartupAnalyzer
         {
             try
             {
-                if (item.Source == "HKCU\\Run")
-                {
-                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
-                    {
-                        key?.DeleteValue(item.Name, false);
-                    }
-                }
-                else if (item.Source == "HKLM\\Run")
-                {
-                    using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
-                    {
-                        key?.DeleteValue(item.Name, false);
-                    }
-                }
-                else if (item.Source == "Папка Startup")
+                if (item.Source.Contains("Папка Startup"))
                 {
                     if (File.Exists(item.Path))
                     {
                         File.Delete(item.Path);
+                        return true;
+                    }
+                    return false;
+                }
+
+                if (item.Source == "Служба (Авто)")
+                {
+                    using (RegistryKey servicesKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services", true))
+                    {
+                        if (servicesKey != null)
+                        {
+                            using (RegistryKey serviceKey = servicesKey.OpenSubKey(item.Name, true))
+                            {
+                                if (serviceKey != null)
+                                {
+                                    serviceKey.SetValue("Start", 4, RegistryValueKind.DWord);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                }
+
+                RegistryKey rootKey = Registry.CurrentUser;
+                string registryPath = "";
+
+                if (item.Source.StartsWith("HKCU"))
+                {
+                    rootKey = Registry.CurrentUser;
+                    if (item.Source.Contains("RunOnce"))
+                        registryPath = @"Software\Microsoft\Windows\CurrentVersion\RunOnce";
+                    else
+                        registryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+                }
+                else if (item.Source.StartsWith("HKLM"))
+                {
+                    rootKey = Registry.LocalMachine;
+                    if (item.Source.Contains("WOW6432Node"))
+                        registryPath = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run";
+                    else if (item.Source.Contains("RunOnce"))
+                        registryPath = @"Software\Microsoft\Windows\CurrentVersion\RunOnce";
+                    else
+                        registryPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
+                }
+
+                using (RegistryKey key = rootKey.OpenSubKey(registryPath, true))
+                {
+                    if (key != null)
+                    {
+                        key.DeleteValue(item.Name, false);
+                        return true;
                     }
                 }
 
-                return true; // Возвращаем true, если удаление прошло успешно
+                return false;
             }
             catch (Exception)
             {
-                return false; // Возвращаем false, если не хватило прав администратора
+                return false;
             }
         }
     }

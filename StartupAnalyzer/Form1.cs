@@ -34,7 +34,7 @@ namespace StartupAnalyzer
             gridItems.DataSource = null;
             gridItems.DataSource = currentItems;
 
-            gridItems.Columns["Name"].HeaderText = "Название программы";
+            gridItems.Columns["Name"].HeaderText = "Название программы / Службы";
             gridItems.Columns["Path"].HeaderText = "Путь к файлу";
             gridItems.Columns["Source"].HeaderText = "Где найдено";
             gridItems.Columns["IsActive"].HeaderText = "Включена";
