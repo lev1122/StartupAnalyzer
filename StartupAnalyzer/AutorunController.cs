@@ -4,9 +4,9 @@ using Microsoft.Win32;
 
 namespace StartupAnalyzer
 {
-    public class StartupManager
+    public class AutorunController
     {
-        public bool RemoveItem(StartupItem item)
+        public bool RemoveItem(Model item)
         {
             try
             {

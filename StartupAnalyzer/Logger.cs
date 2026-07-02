@@ -3,7 +3,7 @@ using System.IO;
 
 namespace StartupAnalyzer
 {
-    public class SimpleLogger
+    public class Logger
     {
         private readonly string logFilePath = "audit_logs.txt";
 

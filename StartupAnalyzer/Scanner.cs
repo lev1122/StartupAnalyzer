@@ -5,11 +5,11 @@ using Microsoft.Win32;
 
 namespace StartupAnalyzer
 {
-    public class SystemScanner
+    public class Scanner
     {
-        public List<StartupItem> GetStartupItems()
+        public List<Model> GetStartupItems()
         {
-            var items = new List<StartupItem>();
+            var items = new List<Model>();
 
             ScanRegistryKey(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Run", "HKCU\\Run", items);
             ScanRegistryKey(Registry.LocalMachine, @"Software\Microsoft\Windows\CurrentVersion\Run", "HKLM\\Run", items);
@@ -27,7 +27,7 @@ namespace StartupAnalyzer
             return items;
         }
 
-        private void ScanRegistryKey(RegistryKey rootKey, string path, string sourceName, List<StartupItem> items)
+        private void ScanRegistryKey(RegistryKey rootKey, string path, string sourceName, List<Model> items)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace StartupAnalyzer
                     {
                         foreach (string valueName in key.GetValueNames())
                         {
-                            items.Add(new StartupItem
+                            items.Add(new Model
                             {
                                 Name = valueName,
                                 Path = key.GetValue(valueName)?.ToString(),
@@ -51,7 +51,7 @@ namespace StartupAnalyzer
             catch { }
         }
 
-        private void ScanStartupFolder(string startupPath, string sourceName, List<StartupItem> items)
+        private void ScanStartupFolder(string startupPath, string sourceName, List<Model> items)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace StartupAnalyzer
                 {
                     foreach (string file in Directory.GetFiles(startupPath))
                     {
-                        items.Add(new StartupItem
+                        items.Add(new Model
                         {
                             Name = Path.GetFileNameWithoutExtension(file),
                             Path = file,
@@ -72,7 +72,7 @@ namespace StartupAnalyzer
             catch { }
         }
 
-        private void ScanSystemServices(List<StartupItem> items)
+        private void ScanSystemServices(List<Model> items)
         {
             try
             {
@@ -93,7 +93,7 @@ namespace StartupAnalyzer
                                     {
                                         string imagePath = serviceKey.GetValue("ImagePath")?.ToString();
 
-                                        items.Add(new StartupItem
+                                        items.Add(new Model
                                         {
                                             Name = serviceName,
                                             Path = imagePath,

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace StartupAnalyzer
 {
-    public class StartupItem
+    public class Model
     {
  
         public string Name { get; set; }
@@ -16,6 +16,12 @@ namespace StartupAnalyzer
         public string Source { get; set; }
 
         public bool IsActive { get; set; }
+
+        public int Pid { get; set; }
+
+        public string MemoryUsage { get; set; }
+
+        public string CpuUsage { get; set; }
 
         public override string ToString()
         {
